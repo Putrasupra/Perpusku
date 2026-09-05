@@ -1,0 +1,146 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Roboto', sans-serif;
+}
+
+body {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+/* --- NAVBAR --- */
+nav {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    box-shadow: 0 0 10px #1f7a48;
+    background: #fff;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    padding: 10px 0;
+}
+
+nav .logo img {
+    width: 100px;
+    cursor: pointer;
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+nav li {
+    display: inline-block;
+    padding: 0 15px;
+    cursor: pointer;
+}
+
+nav li a {
+    text-decoration: none;
+    color: #000;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+nav li a:hover, nav li.active a {
+    color: #1f7a48;
+}
+
+nav .social_icon i, nav .social_icon button {
+    margin: 0 10px;
+    font-size: 22px;
+    color: #000;
+    transition: 0.3s;
+}
+
+nav .social_icon i:hover {
+    color: #1f7a48;
+    cursor: pointer;
+}
+
+/* --- HOME SECTION --- */
+section.home-section {
+    width: 100%;
+    min-height: 60vh;
+    height: auto;
+    background-image: url('/bg.png'); 
+    background-size: cover;
+    background-position: center;
+    padding-top: 80px; 
+    padding-bottom: 40px;
+}
+
+.main {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    position: relative;
+    top: 5%;
+}
+
+.main_tag h1 {
+    font-size: 55px;
+    margin-bottom: 20px;
+}
+
+.main_tag h1 span {
+    color: #1f7a48;
+}
+
+.main_tag p {
+    width: 650px;
+    text-align: justify;
+    line-height: 25px;
+    margin-bottom: 40px;
+}
+
+.main_btn {
+    background: #1f7a48;
+    padding: 12px 25px;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.main_img img {
+    width: 700px;
+}
+
+/* --- ABOUT SECTION --- */
+.about {
+    width: 100%;
+    height: auto;
+    padding: 80px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    background-color: #f9f9f9;
+}
+
+.about_image img {
+    width: 450px;
+    border-radius: 10px;
+}
+
+.about_tag {
+    width: 650px;
+}
+
+.about_tag h1 {
+    font-size: 50px;
+    margin-bottom: 20px;
+    color: #1f7a48;
+}
+
+.about_tag p {
+    line-height: 25px;
+    text-align: justify;
+}
