@@ -1,0 +1,39 @@
+# ============================================================
+# KONFIGURASI PERPUSKU BACKEND
+# File ini TIDAK boleh di-commit ke git (sudah ada di .gitignore)
+# ============================================================
+
+# Port server backend jalan di sini
+PORT_SERVER=5000
+
+# --- AKUN SAMPEL OTOMATIS (testing tanpa email/OTP sama sekali) ---
+# Set 'true' -> tiap kali `npm start`, server otomatis membuat 2 akun ini
+# kalau belum ada di database. Alur register/login/OTP TIDAK diubah sama
+# sekali, ini cuma nambah baris user langsung ke database.
+#
+#   Admin  : admin@test.com  / password123
+#   Member : member@test.com / password123
+#
+# Langsung bisa dipakai login di frontend begitu server nyala.
+SEED_TEST_USERS=true
+
+# Email yang otomatis dapat role ADMIN kalau register lewat OTP asli
+# (tidak berpengaruh ke akun sampel di atas, itu sudah otomatis role admin).
+ADMIN_EMAIL_UTAMA=admin@test.com
+
+# Berapa menit user boleh diam sebelum otomatis logout (idle timeout)
+SESSION_TIMEOUT_MINUTES=15
+
+# --- EMAIL UNTUK OTP ASLI (opsional — kosongkan kalau cuma pakai akun sampel di atas) ---
+# WAJIB Gmail + App Password (bukan password Gmail biasa), kalau mau
+# fitur register/forgot-password beneran jalan lewat email.
+#   1. Aktifkan 2-Step Verification: https://myaccount.google.com/security
+#   2. Generate App Password:        https://myaccount.google.com/apppasswords
+EMAIL_PENGIRIM=
+KUNCI_EMAIL=
+
+# --- AI ASSISTANT "LUMINA" (opsional) ---
+# Daftar & buat key gratis di: https://console.groq.com/keys
+# Kosongkan kalau tidak butuh fitur chat AI-nya.
+GROQ_API_KEY=
+GROQ_MODEL=llama-3.3-70b-versatile
