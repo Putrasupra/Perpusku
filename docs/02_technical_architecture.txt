@@ -1,0 +1,155 @@
+TECHNICAL ARCHITECTURE
+======================
+
+1. HIGH-LEVEL ARCHITECTURE
+--------------------------
+[Web Frontend]
+       |
+       v
+[Backend REST API / BFF]
+       |
+       +------------------------+
+       |                        |
+       v                        v
+[Relational Database]     [Object Storage]
+       |                        |
+       v                        v
+[Transactions, Users]     [PDF/ePub Files, Covers]
+       |
+       v
+[Optional Cache / Queue]
+
+2. SUGGESTED STACK
+------------------
+Frontend:
+- React / Next.js
+- Tailwind CSS
+- PDF.js for PDF rendering
+
+Backend:
+- Node.js + Express/NestJS
+  OR
+- Python FastAPI
+
+Database:
+- PostgreSQL recommended
+- MySQL acceptable
+
+Object Storage:
+- Google Cloud Storage
+- AWS S3
+- Cloudflare R2
+- MinIO for local development
+
+Authentication:
+- JWT access token + refresh token
+  OR secure server session
+
+3. IMPORTANT SECURITY MODEL
+---------------------------
+Never expose a permanent public URL to premium book files.
+
+Recommended flow:
+1. Member requests to read/download a book.
+2. Backend authenticates member.
+3. Backend checks entitlement/access.
+4. Backend generates a short-lived signed URL OR streams/proxies the file.
+5. Access event is logged.
+
+Note:
+A signed URL improves access control but is NOT full DRM. A determined user
+may still copy content once access is legitimately granted.
+
+4. BACKEND MODULES
+------------------
+auth/
+users/
+books/
+categories/
+authors/
+files/
+access-policies/
+entitlements/
+borrowing/
+wallet/
+transactions/
+payments-or-topup/
+library/
+reviews/
+admin/
+
+5. ACCESS CHECK LOGIC
+---------------------
+function canAccess(user, book, action):
+    if action == PREVIEW:
+        return preview exists
+
+    if book is FREE_FULL:
+        return true
+
+    entitlement = findValidEntitlement(user, book)
+
+    if action == READ:
+        return entitlement allows READ
+
+    if action == DOWNLOAD:
+        return entitlement allows DOWNLOAD
+
+    return false
+
+6. BORROW EXPIRATION
+--------------------
+Borrowing creates:
+- entitlement/access record
+- borrowed_at
+- expires_at
+- status
+
+A scheduled job periodically marks expired borrowing records, or expiration
+can be checked dynamically during every access request.
+
+7. API GROUPS
+-------------
+/auth
+    POST /register
+    POST /login
+    POST /logout
+    POST /refresh
+
+/books
+    GET /books
+    GET /books/{id}
+    GET /books/{id}/preview
+    POST /books/{id}/borrow
+    POST /books/{id}/unlock
+    POST /books/{id}/purchase
+    GET /books/{id}/read
+    GET /books/{id}/download
+
+/library
+    GET /my-library
+    GET /my-library/borrowed
+    GET /my-library/purchased
+
+/wallet
+    GET /wallet
+    GET /wallet/transactions
+    POST /wallet/topup
+
+/admin/books
+/admin/access-policies
+/admin/users
+/admin/transactions
+
+8. READER TECHNICAL NOTE
+------------------------
+For web reading:
+- PDF: PDF.js
+- ePub: epub.js
+
+Store reading progress:
+user_id
+book_id
+current_page_or_location
+progress_percentage
+last_read_at

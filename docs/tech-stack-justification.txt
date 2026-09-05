@@ -1,0 +1,144 @@
+PERPUSKU — PENJELASAN PEMILIHAN TECH STACK
+===========================================
+Dokumen ini menjelaskan teknologi yang dipakai di project Perpusku dan
+alasan pemilihannya. Cocok dipakai sebagai bahan jawaban wawancara / bagian
+"Tech Stack & Rationale" di README portofolio.
+
+
+1. BACKEND: Node.js + Hapi.js
+------------------------------
+Yang dipakai:
+    Node.js (runtime JavaScript di server)
+    Hapi.js (web framework)
+
+Kenapa Node.js:
+    - Satu bahasa (JavaScript) dipakai di frontend DAN backend, jadi lebih
+      cepat berpindah konteks saat development solo/small-team.
+    - Non-blocking I/O cocok untuk aplikasi yang banyak melakukan operasi
+      I/O-bound seperti baca/tulis file (upload cover & PDF), query
+      database, dan panggilan API eksternal (Groq AI, pengiriman email OTP).
+    - Ekosistem npm sangat besar, mempercepat implementasi fitur pendukung
+      (bcrypt untuk hashing, nodemailer untuk email, dsb).
+
+Kenapa Hapi.js (bukan Express/NestJS/FastAPI):
+    - Konfigurasi route eksplisit dan terstruktur (method, path, handler,
+      options.pre untuk middleware/guard) — cocok untuk project dengan
+      banyak aturan otorisasi berbeda per endpoint (member vs admin, wajib
+      login vs opsional login), seperti yang dibutuhkan sistem
+      entitlement/access-policy di project ini.
+    - Built-in validation & plugin system (mis. @hapi/inert untuk serve
+      file) tanpa perlu menambah banyak dependency pihak ketiga seperti di
+      Express.
+    - "pre" handlers Hapi (requireSession, optionalSession) memberi cara
+      rapi untuk memasang guard otorisasi di depan handler tanpa
+      menumpuk middleware chain seperti gaya Express.
+
+
+2. DATABASE: SQLite (via better-sqlite3)
+------------------------------------------
+Kenapa SQLite:
+    - Zero-config: tidak perlu instalasi server database terpisah, database
+      cukup 1 file (database.sqlite) — sangat cocok untuk MVP, demo, dan
+      project portofolio yang perlu mudah di-clone & dijalankan orang lain
+      tanpa setup rumit (docker-compose, container DB, dsb).
+    - better-sqlite3 bersifat synchronous & sangat cepat untuk beban baca
+      yang dominan (katalog buku, listing, dsb), serta lebih sederhana
+      ditulis dibanding driver berbasis Promise/callback untuk kasus
+      seperti ini.
+    - Tetap relasional (mendukung JOIN, index, transaksi ACID) sehingga
+      logika inti seperti wallet_transactions dan entitlements tetap
+      konsisten dan auditable.
+
+Kenapa BUKAN PostgreSQL/MySQL (untuk versi saat ini):
+    - Project context menyebut PostgreSQL "direkomendasikan" untuk produksi,
+      tapi untuk tahap MVP, SQLite dipilih supaya reviewer/recruiter bisa
+      clone repo dan langsung `npm install && npm start` tanpa perlu
+      menyalakan database server terpisah.
+    - Karena akses ke database sudah dipisahkan lewat prepared statements
+      di satu file (src/db.js) dan src/access.js, migrasi ke Postgres di
+      masa depan relatif terlokalisir (mengganti driver & sedikit sintaks
+      SQL), bukan menulis ulang seluruh business logic.
+
+
+3. FRONTEND: React + Vite
+----------------------------
+Kenapa React:
+    - Component-based, cocok untuk UI dengan banyak state interaktif
+      (modal detail buku, form login/OTP, reader PDF, dashboard admin).
+    - Ekosistem besar dan menjadi standar industri saat ini, sehingga
+      familiar bagi reviewer/recruiter dan mudah dikembangkan lebih lanjut.
+
+Kenapa Vite (bukan Create React App / Webpack manual):
+    - Dev server jauh lebih cepat (native ES modules + esbuild untuk
+      transform) dibanding CRA yang sudah deprecated.
+    - Konfigurasi minimal dan build output production yang sudah
+      dioptimasi (code splitting, minifikasi) tanpa perlu setup manual.
+
+Kenapa CSS biasa (bukan Tailwind, walau disebut di technical architecture
+doc sebagai saran):
+    - Project awal sudah dibangun dengan CSS module per komponen (mis.
+      BookDetail.css, Profile.css) — upgrade ini melanjutkan konvensi yang
+      sudah ada supaya konsisten, alih-alih migrasi styling system di
+      tengah project yang berisiko menambah bug tanpa menambah value inti
+      (entitlement/access model) yang jadi fokus upgrade.
+
+
+4. AUTENTIKASI: Session Token + bcrypt (bukan JWT)
+-----------------------------------------------------
+Kenapa session token tersimpan di server (bukan JWT):
+    - Sesi bisa langsung dicabut (logout paksa, auto-logout karena idle
+      timeout) cukup dengan menghapus barisnya dari tabel sessions.
+      JWT stateless lebih sulit dicabut sebelum masa berlakunya habis
+      tanpa mekanisme tambahan (blacklist, refresh-token rotation, dsb).
+    - Untuk skala MVP dengan satu backend, kompleksitas tambahan JWT
+      (access + refresh token, penyimpanan refresh token yang aman) belum
+      diperlukan.
+
+Kenapa bcrypt untuk hashing password:
+    - Standar industri untuk hashing password, punya built-in salting dan
+      cost factor yang bisa disesuaikan untuk menyeimbangkan keamanan vs
+      performa.
+
+
+5. FILE STORAGE: Local disk + token akses sementara
+-------------------------------------------------------
+Kenapa bukan langsung S3/GCS/Cloudflare R2 di versi ini:
+    - Supaya project tetap bisa dijalankan siapa pun secara lokal tanpa
+      perlu akun cloud/API key layanan storage berbayar — penting untuk
+      project portofolio yang akan di-review orang lain.
+    - Pola aksesnya (resolveBookFilePath -> issueToken -> stream via
+      /api/files/stream/{token}) sengaja dibuat meniru pola signed-URL
+      object storage, supaya migrasi ke S3/GCS/R2 nantinya hanya mengganti
+      isi fileAccess.js (dari baca file lokal, jadi generate signed URL
+      dari SDK cloud), tanpa mengubah access.js atau route lain sama
+      sekali.
+
+
+6. AI ASSISTANT: Groq (OpenAI-compatible API)
+-------------------------------------------------
+Kenapa Groq:
+    - Kompatibel dengan format API OpenAI (chat completions), jadi mudah
+      diganti ke provider lain kalau perlu.
+    - Free tier & latensi rendah, cocok untuk fitur pelengkap ("Lumina"
+      AI Librarian) yang memang secara eksplisit disebut sebagai subsistem
+      terpisah/eksternal dan bukan fokus utama sistem ini.
+
+
+7. RINGKASAN STACK (untuk bagian "Tech Stack" di README/portofolio)
+------------------------------------------------------------------------
+Frontend   : React 19, Vite, CSS
+Backend    : Node.js, Hapi.js
+Database   : SQLite (better-sqlite3)
+Auth       : Session token (server-side) + bcrypt password hashing
+File Access: Local disk + short-lived signed-token pattern (siap migrasi
+             ke S3 / Google Cloud Storage / Cloudflare R2)
+AI Feature : Groq (OpenAI-compatible LLM API)
+Email      : Nodemailer (OTP register/reset password)
+
+Prinsip desain utama yang disorot ke reviewer:
+    - Access/entitlement model (User -> Entitlement -> Book -> Access
+      Policy), bukan flag is_premium sederhana.
+    - Protected content delivery lewat signed/short-lived token, bukan URL
+      publik permanen.
+    - Auditability: setiap perubahan saldo poin selalu tercatat sebagai
+      transaksi (wallet_transactions).

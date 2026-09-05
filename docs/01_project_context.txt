@@ -1,0 +1,154 @@
+PROJECT CONTEXT
+===============
+Project Name (working): DigiBook / Digital Bookstore & Library
+
+1. PROJECT OVERVIEW
+-------------------
+This project is a web-based digital book platform that combines an online
+bookstore with controlled digital-library access.
+
+The platform focuses ONLY on digital books (PDF/ePub or supported reader
+formats). Users do not necessarily have to permanently purchase every book.
+A book can have multiple access models:
+- Free preview
+- Free full read
+- Limited borrowing
+- Paid full read
+- Paid permanent purchase
+- Download access when explicitly permitted
+
+The recommendation/AI subsystem already exists and is considered an external
+or separate subsystem. It is not the main focus of this system design.
+
+2. PRIMARY ROLES
+----------------
+A. ADMIN
+   - Manage books and metadata
+   - Manage categories and authors/publishers
+   - Upload/manage digital files
+   - Configure access rules and prices
+   - Configure preview/sample content
+   - Manage stock/quota where applicable
+   - Monitor transactions and user activity
+   - Manage users
+
+B. MEMBER
+   - Register/login
+   - Browse and search books
+   - View book details
+   - Read previews
+   - Borrow books
+   - Read books online
+   - Purchase premium access using points
+   - Download books when allowed
+   - Manage personal library
+   - View borrowing/access history
+   - Top up points
+   - Review/rate books
+
+3. CORE BUSINESS CONCEPT
+------------------------
+ONE BOOK CAN HAVE MULTIPLE ACCESS OPTIONS.
+
+Example:
+Book A:
+- Preview: free, first 20 pages
+- Borrow: 50 points, valid for 7 days
+- Read Full: 100 points
+- Purchase: 200 points, permanent access
+- Download: allowed only after purchase
+
+4. ACCESS TYPES
+---------------
+PREVIEW
+    Limited pages, normally free.
+
+FREE_FULL
+    Full online reading without payment.
+
+BORROW
+    Temporary access with a start and expiration time.
+
+UNLOCK_READ
+    Paid access to full online reading.
+
+PURCHASE
+    Permanent ownership/access record.
+
+DOWNLOAD
+    Permission to obtain a downloadable copy, depending on licensing rules.
+
+5. POINT ECONOMY
+----------------
+Members have a points wallet.
+Points may be obtained through top-up.
+
+Points are used for:
+- Borrowing
+- Unlocking premium reading
+- Purchasing books
+- Other future platform services
+
+Every balance-changing action must create a transaction record.
+
+6. IMPORTANT DESIGN PRINCIPLE
+-----------------------------
+DO NOT determine access only from:
+    book.is_premium
+
+Instead use an access/entitlement model:
+    User -> Entitlement -> Book -> Access Policy
+
+The system checks whether the member currently has a valid entitlement before
+opening full content or allowing download.
+
+7. MVP SCOPE
+------------
+- Authentication
+- Role-based authorization
+- Book catalog
+- Categories
+- Digital file management
+- Preview reader
+- Full online reader
+- Borrowing with expiration
+- Points wallet
+- Top-up transaction records
+- Purchase/unlock transaction
+- Download authorization
+- My Library
+- Admin dashboard and management
+
+8. OUT OF SCOPE FOR INITIAL MVP
+-------------------------------
+- AI recommendation implementation details
+- Physical book logistics
+- Shipping
+- Complex DRM
+- Publisher revenue sharing
+- Multi-vendor marketplace
+
+9. KEY NON-FUNCTIONAL REQUIREMENTS
+----------------------------------
+Security:
+- Password hashing
+- JWT/session security
+- RBAC
+- Protected digital-file URLs
+- Validate ownership/entitlement before file access
+
+Performance:
+- Pagination for catalog
+- Efficient search/indexing
+- CDN/object storage for files
+
+Auditability:
+- Record point transactions
+- Record purchases
+- Record borrowing events
+- Record download events
+
+Scalability:
+- Separate application database from object/file storage
+- Do not store large PDF binaries directly in relational database unless
+  there is a specific reason
