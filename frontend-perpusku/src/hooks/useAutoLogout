@@ -1,0 +1,30 @@
+import { useEffect, useRef, useCallback } from 'react';
+
+// 🟢 Logout otomatis kalau user diam (tidak ada mouse/keyboard/scroll) melebihi idleMinutes.
+// Dipakai bareng session backend: backend juga punya idle timeout sendiri (lihat SESSION_TIMEOUT_MINUTES
+// di .env backend) sebagai jaring pengaman kedua kalau tab ditinggal dan device di-suspend.
+export function useAutoLogout(isActive, onLogout, idleMinutes = 15) {
+    const idleTimer = useRef(null);
+
+    const resetTimer = useCallback(() => {
+        if (idleTimer.current) clearTimeout(idleTimer.current);
+        if (!isActive) return;
+
+        idleTimer.current = setTimeout(() => {
+            onLogout('Kamu logout otomatis karena tidak ada aktivitas.');
+        }, idleMinutes * 60 * 1000);
+    }, [isActive, onLogout, idleMinutes]);
+
+    useEffect(() => {
+        if (!isActive) return;
+
+        const activityEvents = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'];
+        activityEvents.forEach(evt => window.addEventListener(evt, resetTimer));
+        resetTimer();
+
+        return () => {
+            activityEvents.forEach(evt => window.removeEventListener(evt, resetTimer));
+            if (idleTimer.current) clearTimeout(idleTimer.current);
+        };
+    }, [isActive, resetTimer]);
+}
